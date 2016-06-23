@@ -6,7 +6,7 @@ gmap={"0x40010800:": "a", "0x40010c00:": "b", "0x40011000:": "c", "0x40011400:":
 
 def mode(cr, odr, idr):
     desc=""
-    mode=cr & 0x11
+    mode=cr & 0b11
     if(mode == 0):
         desc="input value " + str(idr)
     elif(mode == 0b01):
@@ -29,9 +29,9 @@ def mode(cr, odr, idr):
     else:
         if(cnf & 0b10 == 0b10):
             desc += " alternate-function "
-        if(cnf & 0x1 == 0):
+        if(cnf & 0b1 == 0):
             desc += "push-pull"
-        elif(cnf & 0x1 == 1):
+        elif(cnf & 0b1 == 1):
             desc += "open-drain"
     return desc
 
