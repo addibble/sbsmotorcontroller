@@ -10,6 +10,7 @@
 #include "diag/Trace.h"
 #include "buzzer.h"
 #include "Timer.h"
+#include "motors.h"
 //#include "BlinkLed.h"
 
 // ----------------------------------------------------------------------------
@@ -45,12 +46,6 @@
 // so please adjust the PLL settings in system/src/cmsis/system_stm32f10x.c
 //
 
-// ----- Timing definitions -------------------------------------------------
-
-// Keep the LED on for 2/3 of a second.
-#define BLINK_ON_TICKS  (TIMER_FREQUENCY_HZ * 3 / 4)
-#define BLINK_OFF_TICKS (TIMER_FREQUENCY_HZ - BLINK_ON_TICKS)
-
 // ----- main() ---------------------------------------------------------------
 
 // Sample pragmas to cope with warnings. Please note the related line at
@@ -60,10 +55,7 @@
 #pragma GCC diagnostic ignored "-Wmissing-declarations"
 #pragma GCC diagnostic ignored "-Wreturn-type"
 
-int
-main(int argc, char* argv[])
-
-{
+int main(int argc, char* argv[]) {
   // By customising __initialize_args() it is possible to pass arguments,
   // for example when running tests with semihosting you can pass various
   // options to the test.
@@ -78,67 +70,23 @@ main(int argc, char* argv[])
 //  puts("Standard output message.");
 //  fprintf(stderr, "Standard error message.\n");
 
-  // At this stage the system clock should have already been configured
-  // at high speed.
-//  trace_printf("System clock: %u Hz\n", SystemCoreClock);
+	// At this stage the system clock should have already been configured
+	// at high speed.
+	//  trace_printf("System clock: %u Hz\n", SystemCoreClock);
+	motors_init();
+	timer_start();
+	buzzer_init();
 
-  timer_start();
-  buzz_init();
-//  blink_led_init();
+	//don't do this while connected to the battery - it seemed to burn something & short the battery
+	GPIO_InitTypeDef GPIO_InitStructure;
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+	GPIO_SetBits(GPIOA, GPIO_Pin_5);
 
-  GPIO_InitTypeDef GPIO_InitStructure;
-  puts ("init gpio a");
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_All ^ (GPIO_Pin_13 | GPIO_Pin_14);
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
-  GPIO_Init(GPIOA, &GPIO_InitStructure);
-  GPIO_Write(GPIOA, 0);
-
-  puts ("init gpio b");
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_All - (GPIO_Pin_2 | GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7 | GPIO_Pin_10 | GPIO_Pin_11 | GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15);
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
-  GPIO_Init(GPIOB, &GPIO_InitStructure);
-  GPIO_Write(GPIOB, 0);
-  uint16_t test_pins = GPIO_InitStructure.GPIO_Pin;
-  GPIO_TypeDef *test_gpio = GPIOB;
-
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
-  puts ("init gpio c");
-  //  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_All - (GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7 | GPIO_Pin_8 | GPIO_Pin_10 | GPIO_Pin_11 | GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15);
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_All;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
-  GPIO_Init(GPIOC, &GPIO_InitStructure);
-  GPIO_Write(GPIOC, 0);
-
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD, ENABLE);
-  puts ("init gpio d");
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_All;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
-  GPIO_Init(GPIOD, &GPIO_InitStructure);
-  GPIO_Write(GPIOD, 0);
-
-  //don't do this while connected to the battery - it seemed to burn something & short the battery
-//  GPIO_SetBits(GPIOA, GPIO_Pin_5);
-
-  while (1) {
-	  // shift through  all bits set in test_pins and cycle them on for 1
-	  // second while playing a tone corresponding to the number of pin
-	  // (same 1's as set in the GPIO_Pin member to the GPIO_Init call)
-	  for(int i=0; i<16; i++) {
-    	  if(((test_pins >> i) & 1) == 1) {
-    		  printf("pin %d\n", i);
-    		  GPIO_WriteBit(test_gpio, (1 << i), 1);
-    		  buzz(400+(i*20), 1000);
-    		  GPIO_WriteBit(test_gpio, (1 << i), 0);
-    		  timer_sleep(1000*100);
-    	  }
-      }
-    }
+	while (1) {
+	}
   // Infinite loop, never return.
 }
 

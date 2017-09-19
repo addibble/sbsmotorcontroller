@@ -2,7 +2,7 @@
 #include "buzzer.h"
 #include "Timer.h"
 
-void buzz_init(void) {
+void buzzer_init(void) {
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
 	GPIO_InitTypeDef GPIO_InitStructure;
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
@@ -12,7 +12,7 @@ void buzz_init(void) {
 
 }
 
-void buzz(uint16_t hz, uint16_t msec) {
+void buzzer(uint16_t hz, uint16_t msec) {
 	uint32_t delay=TIMER_FREQUENCY_HZ/hz/2;
     uint32_t iters=msec*(TIMER_FREQUENCY_HZ/1000)/delay/2;
     while(--iters > 0) {
